@@ -61,6 +61,53 @@ func Users(s *state, cmd command) error {
 	return nil
 }
 
+func Agg(s *state, cmd command) error {
+	feed, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+	if err != nil {
+		return err
+	}
+	fmt.Println(feed)
+	return nil
+}
+
+func AddFeed(s *state, cmd command) error {
+	if len(cmd.arguments) != 2 {
+		return fmt.Errorf("expects two argument: addfeed <name> <url>")
+	}
+	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return err
+	}
+	feed, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Name:      cmd.arguments[0],
+		Url:       cmd.arguments[1],
+		UserID:    user.ID,
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Feed succesfuly adedd: %v", feed)
+	return nil
+}
+
+func Feeds(s *state, cmd command) error {
+	if len(cmd.arguments) != 0 {
+		return fmt.Errorf("expects no arguments: feeds")
+	}
+	feedsWithUsernames, err := s.db.GetFeedsWithUsernames(context.Background())
+	if err != nil {
+		return err
+	}
+	fmt.Println("Feed\tUrl\tUsername")
+	for _, feed := range feedsWithUsernames {
+		fmt.Printf("%s\t%s\t%s\n", feed.Name, feed.Url, feed.UserName.String)
+	}
+	return nil
+}
+
 // -------------
 //
 //	DANGER ZONE

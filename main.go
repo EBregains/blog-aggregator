@@ -39,6 +39,9 @@ func main() {
 	cmds.register("login", Login)
 	cmds.register("register", Register)
 	cmds.register("users", Users)
+	cmds.register("agg", Agg)
+	cmds.register("addfeed", AddFeed)
+	cmds.register("feeds", Feeds)
 	cmds.register("reset", RESET_USERS) // DANGER ZONE!
 
 	err = cmds.run(&appState, command{
@@ -47,7 +50,7 @@ func main() {
 	})
 
 	if err != nil {
-		fmt.Printf("error: %v", err)
+		fmt.Println(err)
 		os.Exit(1)
 	}
 }
