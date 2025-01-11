@@ -40,8 +40,11 @@ func main() {
 	cmds.register("register", Register)
 	cmds.register("users", Users)
 	cmds.register("agg", Agg)
-	cmds.register("addfeed", AddFeed)
+	cmds.register("addfeed", middlewareLoggedIn(AddFeed))
 	cmds.register("feeds", Feeds)
+	cmds.register("follow", middlewareLoggedIn(Follow))
+	cmds.register("following", middlewareLoggedIn(Following))
+	cmds.register("unfollow", middlewareLoggedIn(Unfollow))
 	cmds.register("reset", RESET_USERS) // DANGER ZONE!
 
 	err = cmds.run(&appState, command{
