@@ -2,7 +2,11 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
+	"time"
+
+	"github.com/EBregains/notice-it/internal/database"
+	"github.com/google/uuid"
 )
 
 func ScrapeFeeds(s *state) error {
@@ -18,9 +22,31 @@ func ScrapeFeeds(s *state) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Items in %s:\n", feed.Channel.Title)
 	for _, item := range feed.Channel.Item {
-		fmt.Printf(" * %s\n", item.Title)
+		publishedAt := sql.NullTime{}
+		if t, err := time.Parse(time.RFC1123Z, item.PubDate); err == nil {
+			publishedAt = sql.NullTime{
+				Time:  t,
+				Valid: true,
+			}
+		}
+
+		_, err = s.db.CreatePost(context.Background(), database.CreatePostParams{
+			ID:        uuid.New(),
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
+			FeedID:    nextFeed.ID,
+			Title:     item.Title,
+			Description: sql.NullString{
+				String: item.Description,
+				Valid:  true,
+			},
+			Url:         item.Link,
+			PublishedAt: publishedAt,
+		})
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
