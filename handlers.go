@@ -62,12 +62,18 @@ func Users(s *state, cmd command) error {
 }
 
 func Agg(s *state, cmd command) error {
-	feed, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+	if len(cmd.arguments) != 1 {
+		return fmt.Errorf("expects only one argument: agg <time-between-reqs>")
+	}
+	timeBetweenReqs, err := time.ParseDuration(cmd.arguments[0])
 	if err != nil {
 		return err
 	}
-	fmt.Println(feed)
-	return nil
+	fmt.Printf("Collecting feeds every %vm\n", timeBetweenReqs.Minutes())
+	ticker := time.NewTicker(timeBetweenReqs)
+	for ; ; <-ticker.C {
+		ScrapeFeeds(s)
+	}
 }
 
 func AddFeed(s *state, cmd command, user database.User) error {
